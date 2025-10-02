@@ -1,6 +1,8 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Recipe.Application.Features;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -34,10 +36,18 @@ namespace Recipe.API.Controllers
             return Ok(token);
         }
         [HttpPost("profile")]
+        [Authorize]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateProfile([FromForm] UpdateUserProfileCommand command)
         {
+            var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if(userIdClaim is null)
+            {
+                return Unauthorized();
+            }
+            // pending to use HttpContext user id as ;
+
             await _mediator.Send(command);
             return Ok();
         }

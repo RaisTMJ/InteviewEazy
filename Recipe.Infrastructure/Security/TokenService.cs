@@ -37,7 +37,7 @@ namespace Recipe.Infrastructure.Security
             Expires = DateTime.Now.AddDays(7),
             SigningCredentials = cred, 
             Issuer = _config["Jwt:Issuer"],
-            Audience = _config["JwtAudience"]
+            Audience = _config["Jwt:Audience"]
             };
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);

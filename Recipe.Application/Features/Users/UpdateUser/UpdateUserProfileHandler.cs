@@ -31,6 +31,18 @@ namespace Recipe.Application.Features
 
             if(request.ProfilePicture != null)
             {
+                const int maxFileSize = 2 * 1024 * 1024;
+
+                if (request.ProfilePicture.Length > maxFileSize) {
+                    throw new DomainException("Image size exceeds the 2MB limit.");
+                }
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+
+                if (!allowedTypes.Contains(request.ProfilePicture.ContentType)) {
+                    throw new DomainException("Invalid image file type,");
+                }
+
+
                 if (!string.IsNullOrEmpty(user.ProfilePicture))
                 {
                     //await _fileStorageService.DeleteFileAsync(user.ProfilePicture);
@@ -59,6 +71,7 @@ namespace Recipe.Application.Features
             }
             user.FirstName = request.FirstName;
             user.LastName = request.LastName;
+            user.UpdatedAt = DateTime.Now;
 
             await _userRepository.UpdateUserAsync(user);
 

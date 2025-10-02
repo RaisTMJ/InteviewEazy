@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using Recipe.API.Middleware;
 using Recipe.Application.Features.Users.CreateUser;
 using Recipe.Application.Interface;
 using Recipe.Infrastructure.Persistance;
@@ -28,6 +29,8 @@ builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            app.UseMiddleware<ExceptionMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

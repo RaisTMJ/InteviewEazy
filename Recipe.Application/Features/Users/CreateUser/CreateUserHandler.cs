@@ -1,10 +1,8 @@
 ﻿using MediatR;
 using Recipe.Application.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Recipe.Domain.Exceptions;
+
+using Recipe.Domain.Exceptions;
 
 namespace Recipe.Application.Features.Users.CreateUser
 {
@@ -21,7 +19,8 @@ namespace Recipe.Application.Features.Users.CreateUser
             var existingUser = await _userRepository.GetUserByEmailAsync(request.Email);
             if (existingUser != null)
             {
-                throw new Exception("User with the same email already exists.");
+
+                    throw new DomainException("User with this email already exists.");
             }
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);

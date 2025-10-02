@@ -32,6 +32,7 @@ namespace Recipe.Infrastructure.Service
         {
 
             var containerClient = _blobServiceClient.GetBlobContainerClient("profile-images");
+            await containerClient.CreateIfNotExistsAsync();
 
             var blobClient = containerClient.GetBlobClient(fileName);
 

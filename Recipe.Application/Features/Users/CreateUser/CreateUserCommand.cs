@@ -1,5 +1,5 @@
 ﻿using MediatR;
-namespace Recipe.Application.Features.Users.CreateUser;
+namespace Recipe.Application.Features;
 public record CreateUserCommand(
     string FirstName,
     string LastName,

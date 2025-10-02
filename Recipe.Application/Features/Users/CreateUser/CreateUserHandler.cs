@@ -4,7 +4,7 @@ using Recipe.Domain.Exceptions;
 
 using Recipe.Domain.Exceptions;
 
-namespace Recipe.Application.Features.Users.CreateUser
+namespace Recipe.Application.Features
 {
     public  class CreateUserHandler : IRequestHandler<CreateUserCommand, Guid>
     {

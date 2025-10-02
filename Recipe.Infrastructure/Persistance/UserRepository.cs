@@ -30,5 +30,11 @@ namespace Recipe.Infrastructure.Persistance
             _dbContext.Users.Update(user);
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task<User> GetUserById(Guid userId)
+        {
+            var user =  await _dbContext.Users.FindAsync(userId);
+            return user ;
+        }
     }
 }

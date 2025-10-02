@@ -91,4 +91,5 @@ Thumbs.db
 *.orig
 *.rej
 
+/Recipe.API/Properties/PublishProfiles
 # End of .gitignore

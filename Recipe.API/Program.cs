@@ -2,6 +2,7 @@
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -86,6 +87,22 @@ namespace Recipe.API
             });
 
             var app = builder.Build();
+
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var dbContext = services.GetRequiredService<ApplicationDbContext>();
+                    dbContext.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "An error occurred during database migration/seeding.");
+                }
+            }
 
             app.UseMiddleware<ExceptionMiddleware>();
 

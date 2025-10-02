@@ -1,0 +1,94 @@
+# Git ignore rules
+############################
+# .NET / C# Build Artifacts
+############################
+# Git ignore rules
+############################
+# .NET / C# Build Artifacts
+############################
+
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Visual Studio Code settings
+.vscode/
+
+# Rider settings
+.idea/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# NuGet packages
+*.nupkg
+# The packages folder can be ignored if you use package restore
+**/packages/*
+!**/packages/build/
+!**/packages/repositories.config
+
+# DotCover
+*.dotCover
+
+# NCrunch
+*.ncrunch*
+.*crunch*.local.xml
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# IIS Express
+/.vs/
+*.vspscc
+*.vssscc
+
+# Local test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Build logs
+*.log
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# Dotnet watch
+**/node_modules/
+**/bower_components/
+
+# Publish outputs
+publish/
+app.publish/
+
+# Global tool restore
+.dotnet_tool/
+
+# Temporary files
+~$*
+*.tmp
+*.temp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Others
+*.swp
+*.bak
+*.orig
+*.rej
+
+# End of .gitignore

@@ -28,7 +28,7 @@ namespace Recipe.API
             builder.Services.AddDbContext<ApplicationDbContext>(options => 
             options.UseSqlServer(
 // IMPORTANT: Get the connection string from your appsettings.json
-    _configuration. GetConnectionString("DefaultConnection")));
+    _configuration.GetConnectionString("DefaultConnection")));
             
 
             builder.Services.AddSingleton(x => new BlobServiceClient(_configuration.GetConnectionString("AzureStorage")));
@@ -39,8 +39,8 @@ namespace Recipe.API
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) 
+                .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -85,6 +85,23 @@ namespace Recipe.API
                         Array.Empty<string>() 
                     } });
             });
+            const string AllowSpecificOrigins = "_allowSpecificOrigins";
+
+            // With the following lines:
+            var allowedHostConfiguration = _configuration["AllowedHosts"];
+            string[] allowedHostList = allowedHostConfiguration != null
+                ? allowedHostConfiguration.Split(",", StringSplitOptions.RemoveEmptyEntries)
+                : Array.Empty<string>();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(name: AllowSpecificOrigins,
+                    policy =>
+                    {
+                        policy.WithOrigins(allowedHostList) // Add your eventual production domain
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
 
             var app = builder.Build();
 
@@ -117,6 +134,8 @@ namespace Recipe.API
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseCors(AllowSpecificOrigins);
 
 
 

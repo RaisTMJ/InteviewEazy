@@ -1,11 +1,14 @@
 ﻿using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace Recipe.Application.Features
 {
-   public record LoginQuery(string Email, string Password): IRequest<string>;
+   public record LoginQuery(
+       [Required(ErrorMessage = "Email is required")]
+       [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+       string Email,
+       
+       [Required(ErrorMessage = "Password is required")]
+       string Password
+   ) : IRequest<string>;
 }

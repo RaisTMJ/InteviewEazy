@@ -1,6 +1,6 @@
-
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
@@ -15,6 +15,7 @@ using Recipe.Infrastructure.Persistence;
 using Recipe.Infrastructure.Security;
 using Recipe.Infrastructure.Service;
 using System.Text;
+using System.Reflection;
 
 namespace Recipe.API
 {
@@ -52,6 +53,18 @@ namespace Recipe.API
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+
+                if (context.Request.Cookies.TryGetValue("auth_token", out var token))
+                {
+                    context.Token = token;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 
@@ -59,17 +72,40 @@ namespace Recipe.API
             builder.Services.AddMediatR(cfg =>
                 cfg.RegisterServicesFromAssembly(typeof(CreateUserCommand).Assembly));
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddJsonOptions(options => { 
+            options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+            });
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen( options=>
             {
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Recipe API",
+                    Version = "v1",
+                    Description = "A comprehensive Recipe Management API built with .NET 8",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Recipe API Support",
+                        Email = "support@recipeapi.com"
+                    }
+                });
+
+                // Include XML comments for better documentation
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    options.IncludeXmlComments(xmlPath);
+                }
+
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = "JWT Authorization header using the Bearer scheme. Enter your token in the text input below.",
+                    Description = "JWT Authorization header using the Bearer scheme. Enter your token in the text input below.\r\n\r\nExample: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
-                    Scheme = "bearer" // JWT scheme name
+                    Scheme = "bearer",
+                    BearerFormat = "JWT"
                 });
 
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement { 
@@ -87,19 +123,21 @@ namespace Recipe.API
             });
             const string AllowSpecificOrigins = "_allowSpecificOrigins";
 
-            // With the following lines:
-            var allowedHostConfiguration = _configuration["AllowedHosts"];
-            string[] allowedHostList = allowedHostConfiguration != null
-                ? allowedHostConfiguration.Split(",", StringSplitOptions.RemoveEmptyEntries)
-                : Array.Empty<string>();
+            // Fix CORS configuration
+            var corsOrigins = _configuration["CorsOrigins"];
+            string[] allowedOrigins = corsOrigins != null
+                ? corsOrigins.Split(",", StringSplitOptions.RemoveEmptyEntries) 
+                : new[] { "http://localhost:3000", "https://localhost:3000" };
+            
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy(name: AllowSpecificOrigins,
                     policy =>
                     {
-                        policy.WithOrigins(allowedHostList) // Add your eventual production domain
+                        policy.WithOrigins(allowedOrigins)
                               .AllowAnyHeader()
-                              .AllowAnyMethod();
+                              .AllowAnyMethod()
+                              .AllowCredentials();
                     });
             });
 
@@ -124,21 +162,26 @@ namespace Recipe.API
             app.UseMiddleware<ExceptionMiddleware>();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || true)
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Recipe API V1");
+                    c.RoutePrefix = "swagger";
+                    c.DisplayRequestDuration();
+                    c.EnableDeepLinking();
+                    c.EnableFilter();
+                    c.ShowExtensions();
+                    c.EnableValidator();
+                });
             }
 
             app.UseHttpsRedirection();
+            app.UseCors(AllowSpecificOrigins);
 
             app.UseAuthentication();
             app.UseAuthorization();
-
-            app.UseCors(AllowSpecificOrigins);
-
-
-
 
             app.MapControllers();
 

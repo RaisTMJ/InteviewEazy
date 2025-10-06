@@ -22,8 +22,9 @@ namespace Recipe.API.Controllers
           }
 
 
-        [HttpGet("user")]
+        [HttpGet("profile")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetUserProfile()
         {
             var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
@@ -38,31 +39,54 @@ namespace Recipe.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost]
-        [Route("register")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Register([FromBody] CreateUserCommand command)
-        {
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
 
-
-        [HttpPost("profile")]
-        [Consumes("multipart/form-data")]
+        [HttpPut("profile")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateProfile([FromForm] UpdateUserProfileCommand command)
+        [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserProfileCommand command)
         {
             var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
             if(userIdClaim is null)
             {
                 return Unauthorized();
             }
-            // pending to use HttpContext user id as ;
 
-            await _mediator.Send(command);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Use the authenticated user's ID
+            var updateCommand = command with { UserId = Guid.Parse(userIdClaim.Value) };
+            
+            await _mediator.Send(updateCommand);
+            return Ok(new { message = "Profile updated successfully" });
+        }
+
+
+        [HttpPost("profile-picture")]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateProfilePicture(IFormFile file)
+        {
+            var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim is null)
+            {
+                return Unauthorized();
+            }
+            Guid userId = Guid.Parse(userIdClaim.Value);
+            if (userIdClaim is null)
+            {
+                return Unauthorized();
+            }
+
+            var result = new UpdateProfilePictureCommand(userId, file);
+
+            await _mediator.Send(result);
             return Ok();
         }
+
 
     }
 }
